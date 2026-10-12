@@ -1,0 +1,14 @@
+.wwebjs_auth/
+.wwebjs_cache/
+
+
+messages.jsonl
+*.jsonl
+context_log.txt
+
+
+node_modules/
+
+
+.DS_Store
+Thumbs.db
