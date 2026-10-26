@@ -8,7 +8,7 @@
 
 ---
 
-## Day 1: Data Ingestion Pipeline Setup and Initial Execution
+## Day 1: Initial Execution
 **Date:** October 11, 2026
 **Coding Time:** 1 hour 19 minutes  
 **Objective**: Build a 24/7 system that automatically captures messages and saves chat group data in real time without slowing anything down or losing messages.
@@ -46,7 +46,7 @@
 
 ---
 
-## Day 2: Exploratory Data Analysis and Baseline Metrics Computation
+## Day 2: Baseline Metrics
 * **Date:** October 12, 2026
 * **Coding Time**: 1 hour 20 minutes
 * **Objective**: Execute initial exploratory data analysis (EDA) using custom Python analytics (analyze.py) on the first 26.6-hour observation window.
@@ -84,3 +84,34 @@
   2. Maintain a `context_log.txt` file to record external real-world group events (e.g., sleepovers, exams, real-life conflicts).
   3. Schedule the next formal biweekly analysis execution for October 25, 2026.
   4. Begin reading foundational research papers on computational social science and group chat dynamics.
+
+  ---
+
+## Day 3: Message Recovery
+  * **Date:** October 21, 2026
+  * **Coding Time:** 15 minutes
+  * **Objective:** Recovering lost chat history from the recent downtime, fixing the broken search filters caused by renamed group chats, and adding unique IDs to the database schema.
+
+### Materials and Protocols
+* **7:10 PM CT:** Discovered process missed messages due to a chat name modification by participants. The string filter `groupName === 'el mandemo'` evaluated to false for incoming packets.
+* **7:25 PM CT:** Refactored `index.js` to add `getStoredGroupMetadata()`, dynamically extracting the permanent group JID (`@g.us`) from existing `messages.jsonl` records to bypass display name dependencies.
+* **7:40 PM CT:** Added `backfillMissingMessages()` with `limit: Infinity` to query WhatsApp browser history and retrieve unlogged frames sent after the last recorded timestamp.
+* **7:50 PM CT:** Upgraded log schema to store `messageId: msg.id._serialized` for explicit deduplication.
+* **8:05 PM CT:** Cleared background browser locks using `Stop-Process -Name node, chrome`. Executed updated `node index.js`. Backfill successfully recovered missing history across the offline window.
+* **8:45 PM CT:** Formally bounded final experiment duration to 215 days, terminating on the last day of school: Friday, May 14, 2027.
+
+### Results and Raw Data
+* `index.js` successfully reconnected, identified the target group JID (`@g.us`), backfilled historical messages, and returned to live event-listening state.
+* All newly logged message records in `messages.jsonl` now include the permanent `messageId` attribute.
+* Final experiment timeline locked to 215 days (October 11, 2026 to May 14, 2027).
+
+### Analysis, Interpretation, and Next Steps
+* **Interpretation:**  Using the permanent group JID (@g.us) keeps data collection stable even if participants change the group name. Additionally, unlimited backfilling ensures no data is lost during system downtime.
+* **To-Do / Action Items:**
+  1. Maintain active continuous logging via `index.js`.
+  2. Maintain a `context_log.txt` file to record external real-world group events (e.g., sleepovers, exams, real-life conflicts).
+  3. Schedule the next formal biweekly analysis execution for October 25, 2026.
+  4. Begin reading foundational research papers on computational social science and group chat dynamics.
+
+  
+

@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from collections import defaultdict, Counter
 from tabulate import tabulate   
 
-
 print("\nLoading messages.jsonl...")
 records = []
 with open("messages.jsonl", "r", encoding="utf-8") as f:
@@ -23,19 +22,23 @@ if not records:
 
 df = pd.DataFrame(records)
 
+# Clean and normalize timestamps
 df['datetime'] = pd.to_datetime(df['timestamp'])
 df = df.sort_values('datetime').reset_index(drop=True)
 
-df['sender'] = df['sender'].fillna('Unknown')
+# Remove any accidental duplicate messages logged during restarts/backfills
+df = df.drop_duplicates(subset=['timestamp', 'senderId', 'body']).reset_index(drop=True)
+
+# Normalize sender names (remove accidental leading/trailing spaces)
+df['sender'] = df['sender'].fillna('Unknown').astype(str).str.strip()
 
 total_msgs = len(df)
 time_span = df['datetime'].max() - df['datetime'].min()
 hours = max(time_span.total_seconds() / 3600, 0.1)
 
-print(f"Loaded {total_msgs:,} messages across {hours:.1f} hours.")
+print(f"Loaded {total_msgs:,} unique messages across {hours:.1f} hours ({hours/24:.1f} days).")
 print(f"From: {df['datetime'].min().strftime('%Y-%m-%d %H:%M')} UTC")
-print(f"To: {df['datetime'].max().strftime('%Y-%m-%d %H:%M')} UTC")
-
+print(f"To:   {df['datetime'].max().strftime('%Y-%m-%d %H:%M')} UTC\n")
 
 user_stats = defaultdict(lambda: {
     'total_msgs': 0,
@@ -80,7 +83,6 @@ for idx, row in df.iterrows():
 
     prev_time = curr_time
 
-
 leaderboard = []
 
 for sender, stats in user_stats.items():
@@ -117,13 +119,14 @@ df['hour'] = df['datetime'].dt.hour
 hourly_counts = df['hour'].value_counts().sort_index()
 peak_hour = hourly_counts.idxmax()
 
+start_str = df['datetime'].min().strftime('%Y-%m-%d')
+end_str = df['datetime'].max().strftime('%Y-%m-%d')
 
-print("----GroupPulse: Day 1 Report----")
-
+print(f"---- GroupPulse Analysis Report ({start_str} to {end_str}) ----\n")
 print(tabulate(leaderboard, headers='keys', tablefmt='fancy_grid'))
-print("\n Group Dynamics:")
-print(f"Peak Hour: {peak_hour:02d}:00 - {peak_hour+1:02d}:00 UTC ({hourly_counts.max()} msgs)")
-print(f"Chat Engagement Specialist: {max(user_stats.items(), key=lambda x: x[1]['silence_breaks'])[0]}")
+print("\nGroup Dynamics:")
+print(f"Peak Activity Hour: {peak_hour:02d}:00 - {peak_hour+1:02d}:00 UTC ({hourly_counts.max()} msgs)")
+print(f"Top Silence Breaker: {max(user_stats.items(), key=lambda x: x[1]['silence_breaks'])[0]}")
 print(f"Most Talkative Member (Highest Avg Words): {max(leaderboard, key=lambda x: float(x['Avg Words']))['Member']} ({max(leaderboard, key=lambda x: float(x['Avg Words']))['Avg Words']} words/msg)")
 print(f"Media/Meme King: {max(leaderboard, key=lambda x: x['Media'] + x['Stickers'])['Member']}")
 print("=" * 80 + "\n")
